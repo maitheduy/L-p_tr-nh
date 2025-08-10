@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>4D Chaos Game Attractor (Phép chiếu Lập thể)</title>
+<script type="text/javascript" async
+  src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/MathJax.js?config=TeX-MML-AM_CHTML">
+</script>
+<style>
+  body { font-family: sans-serif; display: flex; height: 100vh; margin: 0; overflow: hidden; }
+  #left-panel { width: 40%; padding: 20px; box-sizing: border-box; background-color: #2c3e50; color: #ecf0f1; overflow-y: auto; }
+  #left-panel h2, #left-panel h3 { color: #ffffff; border-bottom: 1px solid #34495e; padding-bottom: 10px; margin-top: 20px; }
+  #right-panel { width: 60%; position: relative; }
+  canvas { display: block; }
+  .axis-label { font-size: 16px; font-family: 'Courier New', Courier, monospace; font-weight: bold; text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000; }
+  
+  #controls { display: flex; gap: 10px; margin-top: 15px; }
+  .control-btn { flex-grow: 1; padding: 10px; font-size: 14px; cursor: pointer; background-color: #34495e; color: #ecf0f1; border: 1px solid #4a627a; border-radius: 4px; transition: background-color 0.2s; }
+  .control-btn:hover { background-color: #4a627a; }
+</style>
+</head>
+<body>
+
+<div id="left-panel">
+  <!-- CẬP NHẬT GIẢI THÍCH VỀ HỆ SỐ CO S -->
+  <h2>Hàm co trong không gian 4D</h2>
+  <p>Để đảm bảo attractor 4D bị chặn, mỗi phép biến đổi được nhân với một hệ số co \(s=0.95\):</p>
+  <p>Hàm \(f_1\) (tạo ra mảnh màu xanh lá):</p>
+  <p>
+    $$
+    \mathbf{p}' = s \cdot \left( \begin{pmatrix} 0 & 0 & 0 & 1 \\ 1/2 & 0 & 0 & 0 \\ 0 & 1 & 0 & 0 \\ 0 & 0 & 1 & 0 \end{pmatrix}
+    \mathbf{p} \right)
+    $$
+  </p>
+  <p>Hàm \(f_2\) (tạo ra mảnh màu đỏ):</p>
+  <p>
+    $$
+    \mathbf{p}' = s \cdot \left( \begin{pmatrix} 0 & 0 & 0 & 1 \\ 1/2 & 0 & 0 & 0 \\ 0 & 1 & 0 & 0 \\ 0 & 0 & 1 & 0 \end{pmatrix}
+    \mathbf{p} +
+    \begin{pmatrix} 0 \\ 1/2 \\ 0 \\ 0 \end{pmatrix} \right)
+    $$
+  </p>
+
+  <h3>Điều khiển Hiển thị</h3>
+  <div id="controls">
+    <button id="btn-green" class="control-btn">Chỉ mảnh Xanh</button>
+    <button id="btn-red" class="control-btn">Chỉ mảnh Đỏ</button>
+    <button id="btn-both" class="control-btn">Cả hai mảnh</button>
+  </div>
+  
+  <h3>Phép chiếu Lập thể 4D xuống 3D</h3>
+  <p>Điểm 4D `(x, y, z, w)` được chiếu thành điểm 3D `(x', y', z')`:</p>
+  <p>$$x' = \frac{x}{1-w}, \quad y' = \frac{y}{1-w}, \quad z' = \frac{z}{1-w}$$</p>
+  
+  <h3>Tương tác</h3>
+  <ul>
+      <li><b>Xoay:</b> Giữ và kéo chuột trái.</li>
+      <li><b>Thu phóng:</b> Lăn con lăn chuột.</li>
+      <li><b>Di chuyển:</b> Giữ và kéo chuột phải.</li>
+  </ul>
+</div>
+
+<div id="right-panel">
+</div>
+
+<script type="importmap">
+    {
+        "imports": {
+            "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+            "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+        }
+    }
+</script>
+
+<script type="module">
+  import * as THREE from 'three';
+  import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+  import { CSS2DRenderer, CSS2DObject } from 'three/addons/renderers/CSS2DRenderer.js';
+
+  const rightPanel = document.getElementById('right-panel');
+  const scene = new THREE.Scene();
+  scene.background = new THREE.Color(0x111111);
+  const camera = new THREE.PerspectiveCamera(75, rightPanel.offsetWidth / rightPanel.offsetHeight, 0.1, 1000);
+  camera.position.set(1, 1, 1.5);
+  const renderer = new THREE.WebGLRenderer({ antialias: true });
+  const labelRenderer = new CSS2DRenderer();
+  renderer.setSize(rightPanel.offsetWidth, rightPanel.offsetHeight);
+  labelRenderer.setSize(rightPanel.offsetWidth, rightPanel.offsetHeight);
+  labelRenderer.domElement.style.position = 'absolute';
+  labelRenderer.domElement.style.top = '0px';
+  labelRenderer.domElement.style.pointerEvents = 'none';
+  rightPanel.appendChild(renderer.domElement);
+  rightPanel.appendChild(labelRenderer.domElement);
+  const controls = new OrbitControls(camera, renderer.domElement);
+  controls.enableDamping = true;
+  const gridHelper = new THREE.GridHelper(4, 40, 0x444444, 0x888888);
+  gridHelper.rotation.x = Math.PI / 2;
+  scene.add(gridHelper);
+  const axisLength = 1.5;
+  scene.add(new THREE.ArrowHelper(new THREE.Vector3(1,0,0), new THREE.Vector3(0,0,0), axisLength, 0xff0000));
+  scene.add(new THREE.ArrowHelper(new THREE.Vector3(0,1,0), new THREE.Vector3(0,0,0), axisLength, 0x00ff00));
+  scene.add(new THREE.ArrowHelper(new THREE.Vector3(0,0,1), new THREE.Vector3(0,0,0), axisLength, 0x0000ff));
+  function createAxisLabel(text, color, position) {
+    const div = document.createElement('div');
+    div.className = 'axis-label'; div.textContent = text; div.style.color = color;
+    const label = new CSS2DObject(div); label.position.copy(position);
+    return label;
+  }
+  scene.add(createAxisLabel('X', '#ff4d4d', new THREE.Vector3(axisLength + 0.1, 0, 0)));
+  scene.add(createAxisLabel('Y', '#4dff4d', new THREE.Vector3(0, axisLength + 0.1, 0)));
+  scene.add(createAxisLabel('Z', '#4da6ff', new THREE.Vector3(0, 0, axisLength + 0.1)));
+  scene.add(createAxisLabel('O', '#ffffff', new THREE.Vector3(-0.05, -0.05, 0)));
+  
+
+  let x = Math.random(), y = Math.random(), z = Math.random(), w = Math.random();
+  const iterations = 200000;
+  
+  const positionsRed = [], colorsRed = [];
+  const positionsGreen = [], colorsGreen = [];
+  const colorRed = new THREE.Color(1, 0.2, 0.2), colorGreen = new THREE.Color(0.2, 1, 0.2);
+  
+  // --- HỆ SỐ CO MỚI ĐỂ ĐẢM BẢO ATTRACTOR BỊ CHẶN ---
+  const s = 0.95; 
+
+  function f1(x, y, z, w) {
+    let nx = w, ny = 0.5 * x, nz = y, nw = z;
+    return [nx * s, ny * s, nz * s, nw * s];
+  }
+  function f2(x, y, z, w) {
+    let nx = w, ny = 0.5 * x + 0.5, nz = y, nw = z;
+    return [nx * s, ny * s, nz * s, nw * s];
+  }
+  
+  for(let i = 0; i < 20; i++) {
+    [x, y, z, w] = Math.random() < 0.5 ? f1(x, y, z, w) : f2(x, y, z, w);
+  }
+
+  for (let i = 0; i < iterations; i++) {
+    const choice = Math.random();
+
+    if (choice < 0.5) {
+      [x, y, z, w] = f1(x, y, z, w);
+      
+      const scale = 1.0 / (1.0 - w);
+      const projX = x * scale, projY = y * scale, projZ = z * scale;
+
+      positionsGreen.push(projX, projY, projZ);
+      colorsGreen.push(colorGreen.r, colorGreen.g, colorGreen.b);
+
+    } else {
+      [x, y, z, w] = f2(x, y, z, w);
+      
+      const scale = 1.0 / (1.0 - w);
+      const projX = x * scale, projY = y * scale, projZ = z * scale;
+      
+      positionsRed.push(projX, projY, projZ);
+      colorsRed.push(colorRed.r, colorRed.g, colorRed.b);
+    }
+  }
+  
+  const material = new THREE.PointsMaterial({ size: 0.008, vertexColors: true, sizeAttenuation: true });
+  
+  const geometryGreen = new THREE.BufferGeometry();
+  geometryGreen.setAttribute('position', new THREE.Float32BufferAttribute(positionsGreen, 3));
+  geometryGreen.setAttribute('color', new THREE.Float32BufferAttribute(colorsGreen, 3));
+  
+  // --- CẬP NHẬT: TÍNH TOÁN TRUNG TÂM ĐỂ ĐIỀU KHIỂN TỐT HƠN ---
+  geometryGreen.computeBoundingBox();
+  const center = new THREE.Vector3();
+  geometryGreen.boundingBox.getCenter(center);
+  geometryGreen.translate(-center.x, -center.y, -center.z);
+  
+  const pointsGreen = new THREE.Points(geometryGreen, material);
+  scene.add(pointsGreen);
+  
+  const geometryRed = new THREE.BufferGeometry();
+  geometryRed.setAttribute('position', new THREE.Float32BufferAttribute(positionsRed, 3));
+  geometryRed.setAttribute('color', new THREE.Float32BufferAttribute(colorsRed, 3));
+  geometryRed.translate(-center.x, -center.y, -center.z); // Dịch chuyển đám mây đỏ cùng lượng với đám mây xanh
+  
+  const pointsRed = new THREE.Points(geometryRed, material);
+  scene.add(pointsRed);
+  
+  // Đặt tâm xoay của camera vào trung tâm của attractor
+  controls.target.copy(center).multiplyScalar(-1); // Vì ta đã dịch chuyển hình học đi -center
+
+  document.getElementById('btn-green').addEventListener('click', () => { pointsGreen.visible = true; pointsRed.visible = false; });
+  document.getElementById('btn-red').addEventListener('click', () => { pointsGreen.visible = false; pointsRed.visible = true; });
+  document.getElementById('btn-both').addEventListener('click', () => { pointsGreen.visible = true; pointsRed.visible = true; });
+  
+  function animate() {
+    requestAnimationFrame(animate);
+    controls.update();
+    renderer.render(scene, camera);
+    labelRenderer.render(scene, camera);
+  }
+  
+  window.addEventListener('resize', () => {
+    camera.aspect = rightPanel.offsetWidth / rightPanel.offsetHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(rightPanel.offsetWidth, rightPanel.offsetHeight);
+    labelRenderer.setSize(rightPanel.offsetWidth, rightPanel.offsetHeight);
+  }, false);
+  
+  animate();
+</script>
+
+</body>
+</html>
