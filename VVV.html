@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Minh Họa Hiệu Ứng Gợn Sóng (Đã Sửa Lỗi)</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;700&display=swap" rel="stylesheet">
+
+    <!-- ====================================================== -->
+    <!-- ===                  PHẦN CSS                      === -->
+    <!-- ====================================================== -->
+    <style>
+        /* Thiết lập chung cho trang */
+        body {
+            font-family: 'Be Vietnam Pro', sans-serif;
+            background-color: #1e1e2f;
+            color: #f0f0f0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            text-align: center;
+        }
+
+        .container {
+            max-width: 900px;
+            padding: 20px;
+        }
+
+        h1 {
+            font-size: 2.5em;
+            color: #a7a7ff;
+        }
+
+        .subtitle {
+            font-size: 1.2em;
+            color: #cccccc;
+            margin-bottom: 40px;
+        }
+
+        /* Bố cục cho khu vực demo */
+        .demo-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-around;
+            gap: 40px;
+            margin-bottom: 40px;
+        }
+
+        .demo-box {
+            background-color: #2a2a40;
+            padding: 20px;
+            border-radius: 8px;
+            width: 45%;
+            min-width: 300px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            flex-grow: 1;
+        }
+
+        .demo-box h2 {
+            color: #e0e0e0;
+            margin-top: 0;
+        }
+
+        /* ----------- PHẦN QUAN TRỌNG NHẤT ----------- */
+
+        /* 1. Thiết lập chung cho các nút bấm */
+        .btn {
+            padding: 15px 30px;
+            font-size: 1em;
+            font-weight: bold;
+            border: none;
+            border-radius: 5px;
+            color: white;
+            cursor: pointer;
+            transition: transform 0.1s ease, background-color 0.2s;
+
+            /* YÊU CẦU BẮT BUỘC */
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* 2. Style cho nút tĩnh */
+        .btn-static {
+            background-color: #e74c3c;
+        }
+
+        .btn-static:active {
+            background-color: #c0392b;
+            transform: scale(0.98);
+        }
+
+        /* 3. Style cho nút có hiệu ứng */
+        .btn-ripple {
+            background-color: #27ae60;
+        }
+
+        /* 4. Style cho chính phần tử gợn sóng */
+        .ripple-effect {
+            position: absolute;
+            border-radius: 50%;
+            background-color: rgba(255, 255, 255, 0.7);
+            transform: scale(0);
+            animation: ripple-animation 0.6s linear;
+            /* ** SỬA LỖI: Width và Height sẽ được JS thêm vào ** */
+        }
+
+        /* 5. Định nghĩa animation lan tỏa */
+        @keyframes ripple-animation {
+            to {
+                transform: scale(4);
+                opacity: 0;
+            }
+        }
+
+        /* ----------- KẾT THÚC PHẦN QUAN TRỌNG ----------- */
+
+        #info-box {
+            background-color: #2a2a40;
+            padding: 20px;
+            border-radius: 8px;
+        }
+
+        #coords-display {
+            background-color: #1e1e2f;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 10px;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 1.1em;
+            color: #50fa7b;
+            word-wrap: break-word;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ====================================================== -->
+    <!-- ===                  PHẦN HTML                     === -->
+    <!-- ====================================================== -->
+    <div class="container">
+        <h1>Giải Mã Hiệu Ứng Gợn Sóng</h1>
+        <p class="subtitle">Bí Mật Đằng Sau Cú Click Chuột</p>
+
+        <div class="demo-container">
+            <div class="demo-box">
+                <h2>Nút Tĩnh (Trải nghiệm "tạm ổn")</h2>
+                <p>Chỉ thay đổi màu sắc khi nhấn, không cho biết vị trí chính xác của cú click.</p>
+                <button class="btn btn-static">Click vào tôi!</button>
+            </div>
+            <div class="demo-box">
+                <h2>Hiệu Ứng Gợn Sóng (Trải nghiệm tuyệt vời)</h2>
+                <p>Phản hồi tức thì và trực quan ngay tại vị trí bạn click.</p>
+                <button class="btn btn-ripple">Click vào tôi!</button>
+            </div>
+        </div>
+
+        <div id="info-box">
+            <h2>Bí Mật Cốt Lõi: Tọa Độ</h2>
+            <p>Khi bạn click vào nút bên phải, chúng tôi sẽ xác định tọa độ của cú click so với chính nút bấm đó.</p>
+            <div id="coords-display">
+                Hãy click vào nút "Hiệu Ứng Gợn Sóng"...
+            </div>
+        </div>
+    </div>
+
+
+    <!-- ====================================================== -->
+    <!-- ===         PHẦN JAVASCRIPT (ĐÃ SỬA LỖI)         === -->
+    <!-- ====================================================== -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const rippleButton = document.querySelector('.btn-ripple');
+            const coordsDisplay = document.getElementById('coords-display');
+
+            rippleButton.addEventListener('click', function(event) {
+                // --- BƯỚC 1: XÁC ĐỊNH TỌA ĐỘ VÀ KÍCH THƯỚC ---
+
+                // Lấy tọa độ của cú click so với chính nút bấm
+                const buttonRect = this.getBoundingClientRect();
+                const xInside = event.clientX - buttonRect.left;
+                const yInside = event.clientY - buttonRect.top;
+
+                // Hiển thị thông tin tọa độ ra màn hình
+                coordsDisplay.innerHTML = `
+                    Tọa độ click bên trong nút: <br>
+                    X: ${xInside.toFixed(2)}px, Y: ${yInside.toFixed(2)}px
+                `;
+
+                // --- BƯỚC 2: TẠO, ĐỊNH KÍCH THƯỚC VÀ ĐỊNH VỊ SÓNG ---
+
+                // Xóa gợn sóng cũ nếu có
+                const oldRipple = this.querySelector('.ripple-effect');
+                if (oldRipple) {
+                    oldRipple.remove();
+                }
+
+                // Tạo một phần tử <span> mới
+                const ripple = document.createElement('span');
+                ripple.classList.add('ripple-effect');
+
+                // **SỬA LỖI BẮT ĐẦU TẠI ĐÂY**
+                // 1. Tìm kích thước lớn nhất (rộng hoặc cao) của nút
+                const diameter = Math.max(this.clientWidth, this.clientHeight);
+                const radius = diameter / 2;
+
+                // 2. Gán kích thước cho gợn sóng để nó không còn là 0x0
+                ripple.style.width = ripple.style.height = `${diameter}px`;
+                
+                // 3. Đặt vị trí của sóng sao cho TÂM của nó nằm ngay điểm click
+                ripple.style.left = `${xInside - radius}px`;
+                ripple.style.top = `${yInside - radius}px`;
+                // **KẾT THÚC SỬA LỖI**
+
+                // --- BƯỚC 3: KÍCH HOẠT HIỆU ỨNG VÀ DỌN DẸP ---
+                this.appendChild(ripple);
+
+                // Dọn dẹp phần tử sóng sau khi animation kết thúc
+                setTimeout(() => {
+                    if (ripple.parentElement) {
+                        ripple.remove();
+                    }
+                }, 600);
+            });
+        });
+    </script>
+</body>
+</html>
